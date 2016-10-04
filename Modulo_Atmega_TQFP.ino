@@ -3,6 +3,7 @@
 #include <mcp_can.h>
 #include <EEPROM.h>
 
+
 const int SPI_CS_PIN = 10;//pin 9 en modulo 1 relay Atmega328p
 const int interrupcion = 9;//pin 5 en modulo 1 relay Atmega328p
 const int LED=2;//pin 8 en modulo 1 relay Atmega328p
@@ -15,7 +16,7 @@ const int Acs712_2=A3;//solo ADC
 
 unsigned char canId;
 unsigned char ID_Local=0x03;
-unsigned char ID_Master=0x02;
+unsigned char ID_Master=0x01;
 
 unsigned char MsgUpOk[8]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 unsigned char MsgUpEEprom[8]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
@@ -163,6 +164,10 @@ void loop()
                 CAN.sendMsgBuf(ID_Local,0,8,MsgUpEEprom);
               
                 }
+               if(0x02==MsgLeido[0]){    //si el control es 02 lee acs712 y envia info al bus
+                
+                 Consumo_ACS712();
+                   }
             }
 
            if(MsgLeido[0]==0xFF){
@@ -267,13 +272,48 @@ void loop()
 void Consumo_ACS712() {
  
   acs_1=analogRead(Acs712_1);
-  MsgAcs712[0]= acs_1;
   acs_2=analogRead(Acs712_2);
-  MsgAcs712[1]= acs_2;
+  conversor(1,acs_1);
+  conversor(2,acs_2);
+  MsgAcs712[0]= 0xAC;
   CAN.sendMsgBuf(ID_Local,0,8,MsgAcs712);
+  Serial.println(acs_1);
+  Serial.println(acs_2);
  
  }
 
+
+ void conversor(int NumAcs,int valor){
+
+  if(NumAcs=2){
+     if(valor<=255){      
+        MsgAcs712[4]= acs_2;
+        MsgAcs712[3]= 0x00;}
+     if((255<valor)&&(valor<=511)){      
+        MsgAcs712[4]= acs_2;
+        MsgAcs712[3]= 0x01;}
+     if((511<valor)&&(valor<=767)){      
+        MsgAcs712[4]= acs_2;
+        MsgAcs712[3]= 0x02;}
+     if(767<valor){      
+       MsgAcs712[4]= acs_2;
+       MsgAcs712[3]= 0x03;}
+      }
+  else{
+       if(valor<=255){      
+        MsgAcs712[2]= acs_1;
+        MsgAcs712[1]= 0x00;}
+     if((255<valor)&&(valor<=511)){      
+        MsgAcs712[2]= acs_1;
+        MsgAcs712[1]= 0x01;}
+     if((511<valor)&&(valor<=767)){      
+        MsgAcs712[2]= acs_1;
+        MsgAcs712[1]= 0x02;}
+     if(767<valor){      
+       MsgAcs712[2]= acs_1;
+       MsgAcs712[1]= 0x03;}
+}
+ }
 //////////////////////////////////// prueba test
 
 
