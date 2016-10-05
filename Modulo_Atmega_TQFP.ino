@@ -88,11 +88,14 @@ START_INIT:
     if(CAN_OK == CAN.begin(CAN_250KBPS,MCP_16MHz))                 
         {
           CAN.sendMsgBuf(ID_Local,0,8,MsgUpEEprom);
+          Serial.println("CAN ok !! Bitrate:250KBPS");
           Led_CanUpOK();
          }
     else
         {
         Led_CanFail();
+         Serial.println("FAIL CAN  !!!");
+         
           goto START_INIT;
           }
  //interrupts();                 // Autoriza las interrupciones
@@ -145,22 +148,31 @@ void loop()
             if( canId == ID_Master){  // su el Master coinside con el emisor
              Led_Blink(1);
               if(0x00==MsgLeido[0]){    //si el control es 00 solo envia su info el local
-                
-                 CAN.sendMsgBuf(ID_Local,0,8,MsgUpEEprom);
+                  Serial.print("ID_Local:");
+                  Serial.println(ID_Local);
+                    CAN.sendMsgBuf(ID_Local,0,8,MsgUpEEprom);
                    }
               if(MsgLeido[0]==0x01){  
                 if(MsgLeido[1]==0x00){
                   digitalWrite(Relay_1,true);
-                  digitalWrite(Relay_2,true);}
+                  digitalWrite(Relay_2,true);
+                  Serial.println("R1:OFF,R2:OFF");
+                  }
                 if(MsgLeido[1]==0x01){
                   digitalWrite(Relay_1,false);
-                  digitalWrite(Relay_2,true);}
+                  digitalWrite(Relay_2,true);
+                  Serial.println("R1:ON,R2:OFF");
+                  }
                 if(MsgLeido[1]==0x10){
                   digitalWrite(Relay_1,true);
-                  digitalWrite(Relay_2,false);}
+                  digitalWrite(Relay_2,false);
+                  Serial.println("R1:OFF,R2:ON");
+                  }
                 if(MsgLeido[1]==0x11){
                   digitalWrite(Relay_1,false);
-                  digitalWrite(Relay_2,false); }
+                  digitalWrite(Relay_2,false);
+                  Serial.println("R1:ON,R2:ON");
+                  }
                 CAN.sendMsgBuf(ID_Local,0,8,MsgUpEEprom);
               
                 }
@@ -194,7 +206,7 @@ void loop()
 
 
  void Led_grabacion_3(){
-  
+          Serial.println("Programacion ok !");
           digitalWrite(LED,false);
           delay(200);
           digitalWrite(LED,true);
@@ -277,7 +289,9 @@ void Consumo_ACS712() {
   conversor(2,acs_2);
   MsgAcs712[0]= 0xAC;
   CAN.sendMsgBuf(ID_Local,0,8,MsgAcs712);
-  Serial.println(acs_1);
+  Serial.print("ACS712 1:");
+  Serial.print(acs_1);
+  Serial.print(" ACS712 2:");
   Serial.println(acs_2);
  
  }
