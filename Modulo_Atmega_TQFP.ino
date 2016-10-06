@@ -95,8 +95,7 @@ START_INIT:
         {
         Led_CanFail();
          Serial.println("FAIL CAN  !!!");
-         
-          goto START_INIT;
+         goto START_INIT;
           }
  //interrupts();                 // Autoriza las interrupciones
 
@@ -105,26 +104,19 @@ START_INIT:
 
 void loop()
 {   
-
-
-      
-    if(!digitalRead(interrupcion)){   
-
-  
-      // noInterrupts();               // Suspende las interrupciones
+  if(!digitalRead(interrupcion)){   
+     // noInterrupts();               // Suspende las interrupciones
           CAN.readMsgBuf(&len, buf);    // leo el mensaje recibido
           canId = CAN.getCanId();       // almaceno el Id del emisor
          // ID_Local= EEPROM.read(0x00);    // leo el Id del receptor de la EEPROM
         //  ID_Master= EEPROM.read(0x01);
           int ID=int(ID_Local);
-        
           MsgLeido[7]=buf[7];MsgLeido[6]=buf[6];MsgLeido[5]=buf[5];MsgLeido[4]=buf[4];
           MsgLeido[3]=buf[3];MsgLeido[2]=buf[2];MsgLeido[1]=buf[1];MsgLeido[0]=buf[0];
 
-        if( canId==0x00){// MAster  broadcast 0xFF para que todos los ID LOCALEs publiquen su info
+        if( canId==0x00){// MAster  broadcast 0x00 para que todos los ID LOCALEs publiquen su info
 
-             if(MsgLeido[0]==0xFF){
-   
+            if(MsgLeido[0]==0xFF){
             if(MsgLeido[7]==ID_Local){
 
               EEPROM.write(0x00, MsgLeido[6]);// escribe en la dir 0x00 el id del dispositivo LOCAL
@@ -134,16 +126,14 @@ void loop()
               MsgUpEEprom[0]=ID_Local;
               MsgUpEEprom[1]=ID_Master;
               CAN.sendMsgBuf(ID_Local,0,8,MsgUpEEprom);
-            //  Led_grabacion_3();
-        }
-            }
+                                      }
+                              }
            }
        
        if( canId==0xFF){// MAster  broadcast 0xFF para que todos los ID LOCALEs publiquen su info
             CAN.sendMsgBuf(ID_Local,0,8,MsgUpEEprom);
-             
         
-      }
+                      }
        else{        
             if( canId == ID_Master){  // su el Master coinside con el emisor
              Led_Blink(1);
